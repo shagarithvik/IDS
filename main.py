@@ -492,8 +492,12 @@ class IDSApp:
 
     def update_attack_counter(self):
         """Update the attack counter display"""
-        self.attack_count_label.config(text=f"Detected Attacks: {len(detected_attacks)}")
-        self.root.after(1000, self.update_attack_counter)
+        try:
+            if self.root.winfo_exists():
+                self.attack_count_label.config(text=f"Detected Attacks: {len(detected_attacks)}")
+                self.root.after(1000, self.update_attack_counter)
+        except tk.TclError:
+            pass  # Window was destroyed
 
     def start_ids(self):
         self.start_button.config(state=tk.DISABLED)
