@@ -1,8 +1,7 @@
 import tkinter as tk
-from scapy.all import sniff, conf
+from scapy.all import sniff, conf, IP, TCP, UDP
 from tkinter import messagebox
 from PIL import Image, ImageTk
-from scapy.all import sniff, IP, TCP, UDP
 from reportlab.lib.pagesizes import letter, inch
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -91,7 +90,7 @@ def project_info():
             .photo {
                 width: 100px;
                 height: 100px;
-# line lost
+                top: 10px;
                 right: 10px;
             }
             table td,
@@ -157,6 +156,7 @@ def project_info():
                     <td>Rithvik Shaga</td>
                     <td>rithvik8770@gmail.com</td>
                 </tr>
+            </tbody>
         </table>
 
         <h2>Company Details</h2>
@@ -174,8 +174,13 @@ def project_info():
                 </tr>
                 <tr>
                     <td>Email</td>
-                    <td>contact@suprajatechnologies.com</td>          
+                    <td>contact@suprajatechnologies.com</td>
+                </tr>
+            </tbody>
         </table>
+    </div>
+</body>
+</html>
     """
     
     # Save the HTML content to a temporary file
@@ -317,8 +322,8 @@ def generate_pdf_report():
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        #missing
-                #missing
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
         ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
     ])
@@ -336,41 +341,177 @@ class IDSApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Intrusion Detection System")
-        self.root.configure(bg='black')
-        self.root.geometry("600x550")
+        self.root.configure(bg='#1a1a2e')
+        self.root.geometry("650x650")
+        self.root.resizable(True, True)
 
-        self.header_label = tk.Label(root, text="Intrusion Detection System", bg="#26619c", fg="white", font=("Arial", 18, "bold"))
-        self.header_label.pack(pady=10)
+        # Header frame
+        header_frame = tk.Frame(root, bg='#16213e')
+        header_frame.pack(fill=tk.X, pady=0)
 
-        self.info_button = tk.Button(root, text="Project Info", font=("Times new roman", 14, "bold"), bg="#26619c", fg="white", command=project_info)
-        self.info_button.pack(pady=20)
+        self.header_label = tk.Label(
+            header_frame, 
+            text="🛡️ Intrusion Detection System", 
+            bg="#16213e", 
+            fg="#e94560", 
+            font=("Arial", 22, "bold"),
+            pady=15
+        )
+        self.header_label.pack()
+
+        # Main content frame
+        main_frame = tk.Frame(root, bg='#1a1a2e')
+        main_frame.pack(expand=True, fill=tk.BOTH, padx=20, pady=10)
+
+        # Info button
+        self.info_button = tk.Button(
+            main_frame, 
+            text="ℹ️ Project Info", 
+            font=("Arial", 12, "bold"), 
+            bg="#0f3460", 
+            fg="white", 
+            command=project_info,
+            width=20,
+            height=1,
+            cursor="hand2",
+            relief=tk.FLAT,
+            activebackground="#1a508b",
+            activeforeground="white"
+        )
+        self.info_button.pack(pady=15)
 
         # Load and display the image
         image_path = os.path.join(os.path.dirname(__file__), "logo.jpg")
         image = Image.open(image_path)
-        image = image.resize((200, 200), Image.Resampling.LANCZOS)
+        image = image.resize((220, 220), Image.Resampling.LANCZOS)
         self.logo = ImageTk.PhotoImage(image)
-        self.image_label = tk.Label(root, image=self.logo, bg="black")
-        self.image_label.pack(pady=10)
+        
+        # Image with border
+        image_frame = tk.Frame(main_frame, bg='#e94560', padx=3, pady=3)
+        image_frame.pack(pady=15)
+        self.image_label = tk.Label(image_frame, image=self.logo, bg="#1a1a2e")
+        self.image_label.pack()
 
-        self.start_button = tk.Button(root, text="Start IDS", command=self.start_ids, bg="#26619c", fg="white")
-        self.start_button.pack(pady=10)
+        # Status indicator frame
+        status_frame = tk.Frame(main_frame, bg='#1a1a2e')
+        status_frame.pack(pady=10)
 
-        self.stop_button = tk.Button(root, text="Stop IDS", command=self.stop_ids, state=tk.DISABLED, bg="#26619c", fg="white")
-        self.stop_button.pack(pady=10)
+        self.status_indicator = tk.Label(
+            status_frame, 
+            text="●", 
+            fg="#808080", 
+            bg="#1a1a2e", 
+            font=("Arial", 16)
+        )
+        self.status_indicator.pack(side=tk.LEFT, padx=5)
 
-        self.report_button = tk.Button(root, text="Generate Report", command=generate_pdf_report, bg="#26619c", fg="white")
-        self.report_button.pack(pady=10)
+        self.status_label = tk.Label(
+            status_frame, 
+            text="IDS Status: Stopped", 
+            bg="#1a1a2e", 
+            fg="#ffffff", 
+            font=("Arial", 12, "bold")
+        )
+        self.status_label.pack(side=tk.LEFT)
+
+        # Attack counter
+        self.attack_count_label = tk.Label(
+            main_frame, 
+            text="Detected Attacks: 0", 
+            bg="#1a1a2e", 
+            fg="#ffc107", 
+            font=("Arial", 11)
+        )
+        self.attack_count_label.pack(pady=5)
+
+        # Button frame for better layout
+        button_frame = tk.Frame(main_frame, bg='#1a1a2e')
+        button_frame.pack(pady=15)
+
+        # Common button style
+        button_style = {
+            'font': ("Arial", 12, "bold"),
+            'width': 18,
+            'height': 2,
+            'cursor': "hand2",
+            'relief': tk.FLAT,
+            'activeforeground': "white"
+        }
+
+        self.start_button = tk.Button(
+            button_frame, 
+            text="▶️ Start IDS", 
+            command=self.start_ids, 
+            bg="#28a745", 
+            fg="white",
+            activebackground="#218838",
+            **button_style
+        )
+        self.start_button.pack(pady=8)
+
+        self.stop_button = tk.Button(
+            button_frame, 
+            text="⏹️ Stop IDS", 
+            command=self.stop_ids, 
+            state=tk.DISABLED, 
+            bg="#dc3545", 
+            fg="white",
+            activebackground="#c82333",
+            disabledforeground="#888888",
+            **button_style
+        )
+        self.stop_button.pack(pady=8)
+
+        self.report_button = tk.Button(
+            button_frame, 
+            text="📄 Generate Report", 
+            command=generate_pdf_report, 
+            bg="#17a2b8", 
+            fg="white",
+            activebackground="#138496",
+            **button_style
+        )
+        self.report_button.pack(pady=8)
+
+        # Footer
+        footer_frame = tk.Frame(root, bg='#16213e')
+        footer_frame.pack(fill=tk.X, side=tk.BOTTOM)
+
+        footer_label = tk.Label(
+            footer_frame, 
+            text="© 2024 Intrusion Detection System | Supraja Technologies", 
+            bg="#16213e", 
+            fg="#888888", 
+            font=("Arial", 9),
+            pady=8
+        )
+        footer_label.pack()
+
+        # Update attack counter periodically
+        self.update_attack_counter()
+
+    def update_attack_counter(self):
+        """Update the attack counter display"""
+        try:
+            if self.root.winfo_exists():
+                self.attack_count_label.config(text=f"Detected Attacks: {len(detected_attacks)}")
+                self.root.after(1000, self.update_attack_counter)
+        except tk.TclError:
+            pass  # Window was destroyed
 
     def start_ids(self):
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
+        self.status_indicator.config(fg="#28a745")
+        self.status_label.config(text="IDS Status: Running", fg="#28a745")
         self.sniff_thread = threading.Thread(target=start_sniffing)
         self.sniff_thread.start()
 
     def stop_ids(self):
         self.start_button.config(state=tk.NORMAL)
         self.stop_button.config(state=tk.DISABLED)
+        self.status_indicator.config(fg="#dc3545")
+        self.status_label.config(text="IDS Status: Stopped", fg="#dc3545")
         stop_sniffing()
         try:
             self.sniff_thread.join()
